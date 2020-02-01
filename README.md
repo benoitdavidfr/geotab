@@ -8,4 +8,5 @@ Cependant, il leur manque certaines fonctionnalités, notamment:
 L'objectif de ce module est d'offrir ce type de fonctionnalités
 de manière ergonomique lorsque l'on travaille avec un tableur.
 
-Une première version de l'appli est dispo sur: https://gexplor.fr/geotab/
+Une première version de l'appli est dispo sur: https://gexplor.fr/geotab/  
+une documentation est disponible sur: https://gexplor.fr/geotab/?action=doc
