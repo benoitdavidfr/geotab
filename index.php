@@ -23,7 +23,7 @@ if (!isset($_POST['input']) && (!isset($_GET['action']) || in_array($_GET['actio
     echo "<b>Fichier détruit</b></p>\n";
   }
   echo <<<EOT
-  Copiez votre fichier dans le cadre ci-dessous ou <a href='?action=doc'>affichez la doc</a> :<br>
+  Copiez le contenu du fichier dans le cadre ci-dessous ou <a href='?action=doc'>affichez la doc</a> :<br>
   <form method='post'><table border=1>
   <tr><td><textarea name='input' rows=20 cols=130></textarea></form></td></tr>
   <tr><td><input type='submit'></td></tr>
@@ -57,6 +57,8 @@ La sortie reprend la première colonne qui est souvent une clé ce qui permet ai
 qu'il n'y a pas de décalage entre lignes.  
 Les coordonnées géographiques sont fournies dans des champs lon et lat
 et sont affichées avec 6 décimales ce qui correspond approximativement en métropole à une résolution de 10 cm.
+
+Le code source est disponible sur [https://github.com/benoitdavidfr/geotab](https://github.com/benoitdavidfr/geotab).
 
 EOT;
   echo MarkdownExtra::defaultTransform($doc);
