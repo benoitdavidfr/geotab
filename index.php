@@ -94,7 +94,8 @@ echo <<<EOT
 <ul>
 <li><a href='?file=$fname&amp;action=showAsTable'>Afficher le fichier comme table</a></li>
 <li><a href='?file=$fname&amp;action=showAsText'>Afficher le fichier comme texte brut</a></li>
-<li><a href='?file=$fname&amp;action=L93toGeo'>Convertir (x,y) en Lambert93 en (lon,lat) en RGF93</a></li>
+<li><a href='map.php?file=$fname'>Afficher le fichier sous la forme d'une carte</a></li>
+<li><a href='?file=$fname&amp;action=L93toGeo'>Convertir (x,y) en Lambert93 -> (lon,lat) en RGF93</a></li>
 <li><a href='?file=$fname&amp;action=delete'>Supprimer le fichier</a></li>
 <li><a href='?file=$fname&amp;action=doc'>Documentation</a></li>
 </ul>
@@ -146,3 +147,4 @@ if ($action =='L93toGeo') {
   die();
 }
 
+die("Erreur action '$action' inconnue");
