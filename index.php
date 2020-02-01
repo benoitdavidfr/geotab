@@ -106,6 +106,9 @@ if ($action =='showAsTable') {
     die("Erreur ouverture du fichier $fname");
 
   $header = fgetcsv($file, 1024, "\t", '"');
+  if (!$header) {
+    die("Erreur de lecture de la première ligne qui doit être une liste de champs séparés par le caractère tabulation");
+  }
   echo "<table border=1>\n";
   echo "<th>",implode('</th><th>', $header), "</th>\n";
   while ($record = fgetcsv($file, 1024, "\t", '"')) {
