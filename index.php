@@ -73,9 +73,10 @@ Attention :
   * seuls sont gérés les [CRS officiels](https://www.legifrance.gouv.fr/eli/arrete/2019/3/5/TRED1803160A/jo/texte)
     des territoires habités français cad hors Terres Australes et Cliperton
     
-    
 Le code source de l'application est disponible
 sur [https://github.com/benoitdavidfr/geotab](https://github.com/benoitdavidfr/geotab).
+
+Version du 2/2/2020.
 
 EOT;
   echo MarkdownExtra::defaultTransform($doc);
