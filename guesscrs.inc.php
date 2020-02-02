@@ -6,7 +6,7 @@ doc: |
   L'idée est de définir un ensemble de boites correspondant aux CRS les plus utilisés pour les zones géographiques
   les plus souvent rencontrées et de tester si les coordonnées passées sont dans une des boites.
   Cette première version est restreinte à:
-    - la liste des CRS officiels en France sauf à Wallis-et-Futuna, dans les Terres Australes et à Cliperton
+    - la liste des CRS officiels des territoires habités français cad hors Terres Australes et Cliperton
 journal: |
   2/2/2020:
     création
@@ -14,7 +14,20 @@ journal: |
 require_once __DIR__.'/../../geovect/coordsys/full.inc.php';
 
 class GuessCrs {
-  static $geoRegions = [
+  static $geoRegions = [ // liste des régions structurée selon le schéma ci-dessous
+    /*
+      [ codeRegion => [ // code ISO 3166-1
+          'name'=> nom de la région,
+          'limits'=> ['westlimit'=> latitude, 'southlimit'=> longitude, 'eastlimit'=> latitude, 'northlimit'=> longitude],
+          'crs'=> [
+            codeCrs => [
+              'name'=> nom du système de coordonnées,
+              'westlimit'=> latitude?, 'southlimit'=> longitude?, 'eastlimit'=> latitude?, 'northlimit'=> longitude?
+            ]
+          ]
+        ]
+      ]
+    */
     'FX'=> [
       'name'=> "France métropolitaine",
       'limits'=> [ 'westlimit'=> -5.16, 'southlimit'=> 41.33, 'eastlimit'=> 9.57, 'northlimit'=> 51.09 ],
@@ -80,6 +93,13 @@ class GuessCrs {
         'UTM06S-RGPFLonLatDd'=> ['name'=> "UTM06S / RGPF"],
       ],
     ],
+    'WF'=> [
+      'name'=> "Îles Wallis et Futuna",
+      'limits'=> [ 'westlimit'=> -178.19, 'southlimit'=> -14.37, 'eastlimit'=> -176.12, 'northlimit'=> -13.17 ],
+      'crs'=> [
+        'UTM01S-RGWF96LonLatDd'=> ['name'=> "UTM01S / RGWF96"],
+      ],
+    ],
     'NC'=> [
       'name'=> "Nouvelle-Calédonie",
       'limits'=> [ 'westlimit'=> 158.18, 'southlimit'=> -23.03, 'eastlimit'=> 168.96, 'northlimit'=> -17.90 ],
@@ -89,7 +109,7 @@ class GuessCrs {
     ],
   ];
   
-  // prend en param. une Feature Collection GeoJSON encodée en Php et retourne un array
+  // prend en param. une Feature Collection GeoJSON non vide encodée en Php et retourne un array
   // [region -> ['name'-> name, 'crs' -> [codeCrs -> ['title'-> title, 'proportion'-> proportion]]]]
   static function guess(array $fcoll): array {
     $result = []; // [ codeRegion => [ codeCrs => proportion ]]

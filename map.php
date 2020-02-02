@@ -10,6 +10,11 @@ journal: |
   1/2/2020:
     creation
 */
+if (!isset($_GET['file']))
+  die("Erreur paramètre file obligatoire");
+if (!isset($_GET['crs']))
+  die("Erreur paramètre crs obligatoire");
+
 function level(array $bbox): int {
   $dll = max($bbox[2]-$bbox[0], ($bbox[3]-$bbox[1])/cos(($bbox[2]+$bbox[0])/2/180*pi()));
   if ($dll < 1e-3)
@@ -65,7 +70,7 @@ $center = json_encode([$lat, $lon]); // variable utilisé dans le code JavaScrip
 
 //echo "<pre>"; print_r($_SERVER); die;
 $path = dirname($_SERVER['PHP_SELF']);
-$pointspath = "'$path/geojson.php?file=$_GET[file]'"; // variable utilisée dans le code JS
+$pointspath = "$path/geojson.php?file=$_GET[file]&crs=$_GET[crs]"; // variable utilisée dans le code JS
 ?>
 
 <!DOCTYPE HTML><html>
@@ -169,8 +174,8 @@ var overlays = {
       wmtsurl + '&layer=GEOGRAPHICALGRIDSYSTEMS.MAPS.BDUNI.J1&format=image/png&style=normal',
       {"format":"image/png","minZoom":0,"maxZoom":20,"attribution":attrIGN}
   ),
-  "Fichier" : new L.GeoJSON.AJAX(<?php echo $pointspath; ?>, {
-    style: { color: 'blue'}, minZoom: 0, maxZoom: 21, onEachFeature: onEachFeature
+  "Fichier" : new L.GeoJSON.AJAX(<?php echo "'$pointspath'"; ?>, {
+    minZoom: 0, maxZoom: 21, onEachFeature: onEachFeature
   }),
   "Dénominations géographiques" : new L.TileLayer(
     'http://igngp.geoapi.fr/tile.php/toponymes/{z}/{x}/{y}.png',
