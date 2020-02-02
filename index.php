@@ -6,7 +6,6 @@ doc: |
 journal: |
   2/2/2020:
     ajout en béta de la possibilité de deviner le système de coordonnées, voir guesscrs.inc.php
-    doc à compléter sur cette fonctionnalité !
   1/2/2020:
     création
 */
@@ -41,6 +40,7 @@ if (isset($_GET['action']) && ($_GET['action']=='doc')) {
   $doc = <<<EOT
 # Documentation
 L'objectif de cette application est de convertir les coordonnées projetées contenues dans un fichier tabulaire (Excel, ODS)
+décrivant des objets géographiques localisés en France
 en coordonnées géographiques en degrés décimaux.
 
 Si vous savez que les coordonnées sont définies en Lambert 93 alors :
@@ -71,8 +71,10 @@ Dans le texte d'origine :
 Attention :
 
   * seuls sont gérés les [CRS officiels](https://www.legifrance.gouv.fr/eli/arrete/2019/3/5/TRED1803160A/jo/texte)
-    des territoires habités français cad hors Terres Australes et Cliperton
-    
+    des territoires habités français cad hors Terres Australes et Clipperton,
+  * si les champs `x` et `y` ne sont pas définis et que les champs `lon` et `lat` le sont
+    alors l'appli propose d'afficher la carte correspondant aux données considérées comme géoréférencées en coord. géo.  
+
 Le code source de l'application est disponible
 sur [https://github.com/benoitdavidfr/geotab](https://github.com/benoitdavidfr/geotab).
 
@@ -87,7 +89,7 @@ EOT;
   die();
 }
 
-if (isset($_POST['input'])) {  // lecture du fichier en entrée et création du fichier
+if (isset($_POST['input'])) {  // lecture du contenu du fichier en entrée et création du fichier
   $input = $_POST['input'];
   $fname = randomFileName();
   file_put_contents(__DIR__."/$fname", $input);
@@ -104,12 +106,16 @@ else { // ou erreur
 // Actions
 
 if ($action =='delete') {
-  echo "<a href='?file=$fname&amp;action=confirmedDelete'>Confirmer la suppression du fichier</a>";
-  die();
+  die("<a href='?file=$fname&amp;action=confirmedDelete'>Confirmer la suppression du fichier</a>");
 }
 
+if (!($file = fopen(__DIR__."/$fname",'r')))
+  die("Erreur ouverture du fichier $fname");
 
-{ // Menu
+if (!($header = fgetcsv($file, 1024, "\t", '"')))
+  die("Erreur de lecture de la première ligne qui doit être une liste de champs séparés par le caractère tabulation");
+
+if (in_array('x', $header) && in_array('y', $header)) { // Menu fichier en coord. projetées 
   echo <<<EOT
   <ul>
   <li><a href='?file=$fname&amp;action=showAsTable'>Afficher le fichier comme table</a></li>
@@ -122,21 +128,27 @@ if ($action =='delete') {
   </ul>
 EOT;
 }
+if (in_array('lon', $header) && in_array('lat', $header)) { // Menu fichier en coord. géo. 
+  echo <<<EOT
+  Fichier en coord. géo. détecté<ul>
+  <li><a href='?file=$fname&amp;action=showAsTable'>Afficher le fichier comme table</a></li>
+  <li><a href='?file=$fname&amp;action=showAsText'>Afficher le fichier comme texte brut</a></li>
+  <li><a href='map.php?file=$fname&crs=WGS84LonLatDd'>Afficher le fichier sous la forme d'une carte</a></li>
+  <li><a href='?file=$fname&amp;action=delete'>Supprimer le fichier</a></li>
+  <li><a href='?file=$fname&amp;action=doc'>Documentation</a></li>
+  </ul>
+EOT;
+}
+else { // sinon erreur 
+  unlink(__DIR__."/$fname");
+  die("Erreur: l'en-tête ne contient ni champs (x,y) ni champs (lon,lat), <a href='?'>retour</a>\n");
+}
 
 if ($action =='showAsTable') {
-  if (!($file = fopen(__DIR__."/$fname",'r')))
-    die("Erreur ouverture du fichier $fname");
-
-  $header = fgetcsv($file, 1024, "\t", '"');
-  if (!$header) {
-    die("Erreur de lecture de la première ligne qui doit être une liste de champs séparés par le caractère tabulation");
-  }
   echo "<table border=1>\n";
   echo "<th>",implode('</th><th>', $header), "</th>\n";
   while ($record = fgetcsv($file, 1024, "\t", '"')) {
     echo "<tr><td>",implode('</td><td>', $record), "</td></tr>\n";
-    foreach ($header as $i => $k)
-      $rec[$k] = $record[$i];
   }
   echo "</table>\n";
   die();
@@ -152,12 +164,6 @@ if ($action =='guessCrs') {
   $features = [];
   $bbox = []; // bbox des features dans le sys coord
 
-  if (!($file = fopen(__DIR__."/$fname",'r')))
-    die("Erreur ouverture du fichier $fname");
-
-  $header = fgetcsv($file, 1024, "\t", '"');
-  if (!$header)
-    die("Erreur de lecture de la première ligne qui doit être une liste de champs séparés par le caractère tabulation");
   while ($record = fgetcsv($file, 1024, "\t", '"')) {
     foreach ($header as $i => $k)
       $rec[$k] = $record[$i];
@@ -208,10 +214,6 @@ if ($action =='L93toGeo') {
   require_once __DIR__.'/../../geovect/coordsys/light.inc.php';
 
   echo "<h2>Conversion des champs (x,y) définis Lambert93 en champs (lon,lat) en RGF93 en degrés décimaux</h2>\n";
-  if (!($file = fopen(__DIR__."/$fname",'r')))
-    die("Erreur ouverture du fichier $fname");
-
-  $header = fgetcsv($file, 1024, "\t", '"');
   echo "<table border=1><th>$header[0]</th><th>lon</th><th>lat</th>\n";
   while ($record = fgetcsv($file, 1024, "\t", '"')) {
     foreach ($header as $i => $k)
@@ -236,10 +238,6 @@ if ($action =='CrsToGeo') {
   $crs = CRS::create($_GET['crs']);
 
   echo "<h2>Conversion des champs (x,y) définis $_GET[crs] en champs (lon,lat) en degrés décimaux</h2>\n";
-  if (!($file = fopen(__DIR__."/$fname",'r')))
-    die("Erreur ouverture du fichier $fname");
-
-  $header = fgetcsv($file, 1024, "\t", '"');
   echo "<table border=1><th>$header[0]</th><th>lon</th><th>lat</th>\n";
   while ($record = fgetcsv($file, 1024, "\t", '"')) {
     foreach ($header as $i => $k)

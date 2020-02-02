@@ -23,6 +23,7 @@ doc: |
 journal: |
   2/2/2020:
     ajout en béta de la possibilité de deviner le système de coordonnées, voir guesscrs.inc.php
+    ajout de la possibilité d'afficher la carte correspondant à des données géoréférencées en coord. géo.
   1/2/2020:
     création
     création d'un Git
