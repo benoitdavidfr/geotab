@@ -6,6 +6,7 @@ doc: |
 journal: |
   2/2/2020:
     ajout en béta de la possibilité de deviner le système de coordonnées, voir guesscrs.inc.php
+    doc à compléter sur cette fonctionnalité !
   1/2/2020:
     création
 */

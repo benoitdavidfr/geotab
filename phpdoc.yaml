@@ -12,6 +12,8 @@ doc: |
   
   synchro: http://localhost/synchro.php?remote=http://prod.geoapi.fr/&dir=gexplor/geotab
 journal: |
+  2/2/2020:
+    ajout en béta de la possibilité de deviner le système de coordonnées, voir guesscrs.inc.php
   1/2/2020:
     création
     création d'un Git
