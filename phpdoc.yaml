@@ -11,6 +11,15 @@ doc: |
   Voir la doc sur http://gexplor.fr/geotab/?action=doc
   
   synchro: http://localhost/synchro.php?remote=http://prod.geoapi.fr/&dir=gexplor/geotab
+  
+  Il y a plein d'idées d'extensions, notamment :
+    - ajuter d'autres systèmes de coordonnées, not. européens, périmés, ...
+    - lister les enregistrements dont les coordonnées sont invalides pour un CRS
+    - gérer les types de géométrie autres que le ponctuel
+    - saisir la géométrie sur la carte
+    - gérer des fichiers pérennes en ligne (NON -> geojson.io)
+    - gérer des cartes pérennes
+    - gérer des représentations carto. des fichiers (NON -> geojson.io)
 journal: |
   2/2/2020:
     ajout en béta de la possibilité de deviner le système de coordonnées, voir guesscrs.inc.php

@@ -137,8 +137,13 @@ class GuessCrs {
             //echo " NOT in $codeRegion $codeCrs<br>\n";
           }
         }
-        $result[$codeRegion]['crs'][$codeCrs]['proportion'] /= count($fcoll['features']);
+        if ($result[$codeRegion]['crs'][$codeCrs]['proportion'] == 0)
+          unset($result[$codeRegion]['crs'][$codeCrs]);
+        else
+          $result[$codeRegion]['crs'][$codeCrs]['proportion'] /= count($fcoll['features']);
       }
+      if (!$result[$codeRegion]['crs'])
+        unset($result[$codeRegion]);
     }
     return $result;
   }

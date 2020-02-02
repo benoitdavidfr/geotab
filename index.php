@@ -53,22 +53,29 @@ Si vous savez que les coordonnées sont définies en Lambert 93 alors :
 
 Si vous ne connaissez pas le système de coordonnées ou si ce n'est pas Lambert 93 alors pour réaliser la conversion :
 
-  * identifiez le système de cordonnées avec 'Deviner le système de coordonnées'
-  * affichez la carte pour vérifier les éventuels systèmes de cordonnées trouvés
-  * convertir les coordonnées projetées en coordonnées géographiques
+  * trouvez le système de cordonnées avec 'Deviner le système de coordonnées',
+  * affichez la carte pour vérifier les éventuels systèmes de cordonnées trouvés,
+  * convertissez les coordonnées projetées en coordonnées géographiques.
 
-Dans le fichier :
+Dans le texte d'origine :
   
   * le séparateur est le caractère de tabulation,
-  * la première ligne du fichier doit contenir les noms des champs,
-  * les coordonnées projetées (par exemple Lambert93) doivent être dans les champs **x** et **y**,
-  * seules sont traitées les lignes pour lesquelles les champs x et y sont des nombres,
-  * la sortie reprend la première colonne qui est souvent une clé ce qui permet ainsi de vérifier
+  * la première ligne doit contenir les noms des champs,
+  * les coordonnées projetées (par exemple Lambert93) doivent correspondre aux champs **`x`** et **`y`**,
+  * les lignes pour lesquelles les champs `x` et `y` ne sont pas des nombres sont ignorées,
+  * la sortie en coord. géo. reprend la première colonne qui est souvent une clé, permettant ainsi de vérifier
     qu'il n'y a pas de décalage entre lignes,
-  * les coordonnées géographiques sont fournies dans des champs lon et lat
-    et sont affichées avec 6 décimales ce qui correspond approximativement en métropole à une résolution de 10 cm.
+  * les coordonnées géographiques sont fournies dans des champs **`lon`** et **`lat`**
+    et sont affichées avec 6 décimales ce qui correspond à une résolution meilleure que le mètre.
 
-Le code source est disponible sur [https://github.com/benoitdavidfr/geotab](https://github.com/benoitdavidfr/geotab).
+Attention :
+
+  * seuls sont gérés les [CRS officiels](https://www.legifrance.gouv.fr/eli/arrete/2019/3/5/TRED1803160A/jo/texte)
+    des territoires habités français cad hors Terres Australes et Cliperton
+    
+    
+Le code source de l'application est disponible
+sur [https://github.com/benoitdavidfr/geotab](https://github.com/benoitdavidfr/geotab).
 
 EOT;
   echo MarkdownExtra::defaultTransform($doc);
@@ -184,7 +191,8 @@ if ($action =='guessCrs') {
         $sw = $crs->geo([$bbox[0], $bbox[1]]);
         $ne = $crs->geo([$bbox[2], $bbox[3]]);
         echo " <a href='map.php?file=$fname&amp;crs=$codeCrs&amp;bbox=$sw[0],$sw[1],$ne[0],$ne[1]'>carte</a>,\n";
-        echo " <a href='?file=$fname&amp;action=CrsToGeo&amp;crs=$codeCrs'>convertir en coord. géo.</a>\n";
+        echo " <a href='?file=$fname&amp;action=CrsToGeo&amp;crs=$codeCrs'>convertir en coord. géo.</a>, \n";
+        echo " <a href='geojson.php?file=$fname&amp;crs=$codeCrs'>afficher en GeoJSON</a>, \n";
       }
       echo "</li>\n";
     }
