@@ -4,9 +4,12 @@ name: index.php
 title: index.php - accueil de geotab
 doc: |
 journal: |
+  2/2/2020:
+    ajout en béta de la possibilité de deviner le système de coordonnées, voir guesscrs.inc.php
   1/2/2020:
     création
 */
+require_once __DIR__.'/guesscrs.inc.php';
 
 use Michelf\MarkdownExtra;
 
@@ -91,17 +94,19 @@ if ($action =='delete') {
 }
 
 
-// Menu
-echo <<<EOT
-<ul>
-<li><a href='?file=$fname&amp;action=showAsTable'>Afficher le fichier comme table</a></li>
-<li><a href='?file=$fname&amp;action=showAsText'>Afficher le fichier comme texte brut</a></li>
-<li><a href='map.php?file=$fname'>Afficher le fichier sous la forme d'une carte</a></li>
-<li><a href='?file=$fname&amp;action=L93toGeo'>Convertir (x,y) en Lambert93 -> (lon,lat) en RGF93</a></li>
-<li><a href='?file=$fname&amp;action=delete'>Supprimer le fichier</a></li>
-<li><a href='?file=$fname&amp;action=doc'>Documentation</a></li>
-</ul>
+{ // Menu
+  echo <<<EOT
+  <ul>
+  <li><a href='?file=$fname&amp;action=showAsTable'>Afficher le fichier comme table</a></li>
+  <li><a href='?file=$fname&amp;action=showAsText'>Afficher le fichier comme texte brut</a></li>
+  <li><a href='?file=$fname&amp;action=guessCrs'>Deviner le système de coordonnées (béta)</a></li>
+  <li><a href='map.php?file=$fname'>Afficher le fichier sous la forme d'une carte</a></li>
+  <li><a href='?file=$fname&amp;action=L93toGeo'>Convertir (x,y) en Lambert93 -> (lon,lat) en RGF93</a></li>
+  <li><a href='?file=$fname&amp;action=delete'>Supprimer le fichier</a></li>
+  <li><a href='?file=$fname&amp;action=doc'>Documentation</a></li>
+  </ul>
 EOT;
+}
 
 if ($action =='showAsTable') {
   if (!($file = fopen(__DIR__."/$fname",'r')))
@@ -117,7 +122,6 @@ if ($action =='showAsTable') {
     echo "<tr><td>",implode('</td><td>', $record), "</td></tr>\n";
     foreach ($header as $i => $k)
       $rec[$k] = $record[$i];
-  
   }
   echo "</table>\n";
   die();
@@ -125,6 +129,45 @@ if ($action =='showAsTable') {
 
 if ($action =='showAsText') {
   echo "<pre>",file_get_contents(__DIR__."/$fname"),"</pre";
+  die();
+}
+
+if ($action =='guessCrs') {
+  $features = [];
+
+  if (!($file = fopen(__DIR__."/$fname",'r')))
+    die("Erreur ouverture du fichier $fname");
+
+  $header = fgetcsv($file, 1024, "\t", '"');
+  if (!$header)
+    die("Erreur de lecture de la première ligne qui doit être une liste de champs séparés par le caractère tabulation");
+  while ($record = fgetcsv($file, 1024, "\t", '"')) {
+    foreach ($header as $i => $k)
+      $rec[$k] = $record[$i];
+    if (isset($rec['x']) && is_numeric($rec['x']) && isset($rec['y']) && is_numeric($rec['y'])) {
+      //echo "code=$rec[code], x=$rec[x], y=$rec[y] -> ";
+      //printf("%.6f, %.6f<br>\n", $geo[0], $geo[1]);
+      //printf("<tr><td>%s</td><td>%.6f</td><td>%.6f</td>", $record[0], $geo[0], $geo[1]);
+      $features[] = [
+        'type'=> 'Feature',
+        'properties'=> $rec,
+        'geometry'=> [
+          'type'=> 'Point',
+          'coordinates'=> [$rec['x'], $rec['y']],
+        ],
+      ];
+    }
+  }
+  $guess = GuessCrs::guess(['type'=>'FeatureCollection', 'features'=>$features]);
+  echo "<h2>Proportion des coordonnées compatibles avec les CRS testés dans les différentes régions</h2><ul>\n";
+  foreach ($guess as $codeRegion => $region) {
+    echo "<li>$region[name] ($codeRegion)<ul>\n";
+    foreach ($region['crs'] as $codeCrs => $crs)
+      printf("<li>%s : %.0f%%</li>", $crs['name'], $crs['proportion']*100);
+    echo "</ul></li>\n";
+  }
+  echo "</ul>\n";
+  echo '<pre>',json_encode($guess,  JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES),"</pre>\n";
   die();
 }
 

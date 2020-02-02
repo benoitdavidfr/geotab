@@ -8,6 +8,7 @@ doc: |
     - la détection du système de coordonnées
   L'objectif de ce module est d'offrir ce type de fonctionnalités
   de manière ergonomique lorsque l'on travaille avec un tableur.
+  Voir la doc sur http://gexplor.fr/geotab/?action=doc
   
   synchro: http://localhost/synchro.php?remote=http://prod.geoapi.fr/&dir=gexplor/geotab
 journal: |
@@ -15,6 +16,7 @@ journal: |
     création
     création d'un Git
     recopie sur http://gexplor.fr/geotab/
+    source sur https://github.com/benoitdavidfr/geotab
     
 submodules:
 phpScripts:

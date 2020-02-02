@@ -74,24 +74,37 @@ $pointspath = "'$path/geojson.php?file=$_GET[file]'"; // variable utilisée dans
   <head>
     <title>carte</title>
     <meta charset="UTF-8">
-<!-- meta nécessaire pour le mobile -->
+    <!-- meta nécessaire pour le mobile -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<!-- styles nécessaires pour le mobile -->
+    <!-- styles nécessaires pour le mobile -->
     <link rel="stylesheet" href="https://visu.gexplor.fr/viewer.css">
-<!-- styles et src de Leaflet -->
+    <!-- styles et src de Leaflet -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.6/dist/leaflet.js"></script>
-<!-- plug-in d'appel des GeoJSON en AJAX -->
+    <!-- plug-in d'appel des GeoJSON en AJAX -->
     <script src='lib/leaflet/leaflet-ajax.js'></script>
-<!-- plug-in Overlapping Marker Spiderfier for Leaflet
+    <!-- Include the Control.Coordinates plugin -->
+    <link rel='stylesheet' href='lib/leaflet/Control.Coordinates.css'>
+    <script src='lib/leaflet/Control.Coordinates.js'></script>
+    <!-- plug-in Overlapping Marker Spiderfier for Leaflet
     <script src="https://cdnjs.cloudflare.com/ajax/libs/OverlappingMarkerSpiderfier-Leaflet/0.2.6/oms.min.js"></script>.
--->
+    -->
   </head>
   <body>
     <div id="map" style="height: 100%; width: 100%"></div>
     <script>
 var map = L.map('map').setView(<?php echo $center; ?>, <?php echo $level; ?>); // view pour la zone
 L.control.scale({position:'bottomleft', metric:true, imperial:false}).addTo(map);
+
+// activation du plug-in Control.Coordinates
+var c = new L.Control.Coordinates();
+c.addTo(map);
+map.on('click', function(e) { c.setCoordinates(e); });
+
+// activation du plug-in Control.Coordinates
+var c = new L.Control.Coordinates();
+c.addTo(map);
+map.on('click', function(e) { c.setCoordinates(e); });
 
 var wmtsurl = 'https://wxs.ign.fr/choisirgeoportail/geoportail/wmts?'
             + 'service=WMTS&version=1.0.0&request=GetTile&tilematrixSet=PM&height=256&width=256&'
