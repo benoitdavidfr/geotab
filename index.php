@@ -38,18 +38,26 @@ EOT;
 if (isset($_GET['action']) && ($_GET['action']=='doc')) {
   require_once __DIR__."/../../markdown/markdown/PHPMarkdownLib1.8.0/Michelf/MarkdownExtra.inc.php";
   $doc = <<<EOT
-# Documentation
-L'objectif de cette application est de convertir les coordonnées projetées contenues dans un fichier tabulaire (Excel, ODS)
-décrivant des objets géographiques localisés en France
-en coordonnées géographiques en degrés décimaux.
+## Documentation
+Les tableurs permettent de gérer facilement des données géographiques notamment ponctuelles.
+Cependant, il leur manque certaines fonctionnalités, notamment:
 
-Si vous savez que les coordonnées sont définies en Lambert 93 alors :
+* le changement de système de coordonnées,
+* l'affichage des données sous la forme d'une carte,
+* la détection du système de coordonnées utilisé.
 
-  * copiez le contenu du fichier du tableur,
-  * collez le dans le formulaire de la page par défaut,
-  * réalisez la conversion en utilisant 'Convertir (x,y) en Lambert93 -> (lon,lat) en RGF93',
-  * copiez le tableau affiché,
-  * collez le dans votre tableur.
+L'objectif de cette application est d'offrir ce type de fonctionnalités de manière ergonomique
+lorsque l'on utilise un tableur (Libre Office ou Excel) pour décrire des données géographiques localisées en France,
+notamment de convertir les coordonnées projetées en coordonnées géographiques en degrés décimaux.
+
+Si vous savez que vos coordonnées sont définies en Lambert 93 alors :
+
+* copiez le contenu d'une feuille du tableur,
+* collez le dans le formulaire de la page par défaut,
+* vérifiez les données avec 'Afficher le fichier en Lambert93 sous la forme d'une carte',
+* réalisez la conversion en utilisant 'Convertir (x,y) en Lambert93 -> (lon,lat) en RGF93',
+* copiez le tableau affiché,
+* collez le dans votre tableur.
 
 Si vous ne connaissez pas le système de coordonnées ou si ce n'est pas Lambert 93 alors pour réaliser la conversion :
 
@@ -59,26 +67,30 @@ Si vous ne connaissez pas le système de coordonnées ou si ce n'est pas Lambert
 
 Dans le texte d'origine :
   
-  * le séparateur est le caractère de tabulation,
-  * la première ligne doit contenir les noms des champs,
-  * les coordonnées projetées (par exemple Lambert93) doivent correspondre aux champs **`x`** et **`y`**,
-  * les lignes pour lesquelles les champs `x` et `y` ne sont pas des nombres sont ignorées,
-  * la sortie en coord. géo. reprend la première colonne qui est souvent une clé, permettant ainsi de vérifier
-    qu'il n'y a pas de décalage entre lignes,
-  * les coordonnées géographiques sont fournies dans des champs **`lon`** et **`lat`**
-    et sont affichées avec 6 décimales ce qui correspond à une résolution meilleure que le mètre.
+* le séparateur est le caractère de tabulation,
+* la première ligne doit contenir les noms des champs,
+* les coordonnées projetées (par exemple Lambert93) doivent correspondre aux champs **`x`** et **`y`**,
+* les lignes pour lesquelles les champs `x` et `y` ne sont pas des nombres sont ignorées,
+* la sortie en coord. géo. reprend la première colonne qui est souvent une clé, permettant ainsi de vérifier
+  qu'il n'y a pas de décalage entre lignes,
+* les coordonnées géographiques sont fournies dans des champs **`lon`** et **`lat`**
+  et sont fournies avec 6 décimales ce qui correspond à une résolution meilleure que le mètre.
 
-Attention :
+### Attention
 
-  * seuls sont gérés les [CRS officiels](https://www.legifrance.gouv.fr/eli/arrete/2019/3/5/TRED1803160A/jo/texte)
-    des territoires habités français cad hors Terres Australes et Clipperton,
-  * si les champs `x` et `y` ne sont pas définis et que les champs `lon` et `lat` le sont
-    alors l'appli propose d'afficher la carte correspondant aux données considérées comme géoréférencées en coord. géo.  
+* seuls sont gérés les [CRS officiels](https://www.legifrance.gouv.fr/eli/arrete/2019/3/5/TRED1803160A/jo/texte)
+  des territoires habités français cad hors Terres Australes et Clipperton,
+* si les champs `x` et `y` ne sont pas définis et que les champs `lon` et `lat` le sont
+  alors l'appli propose d'afficher la carte correspondant aux données considérées comme géoréférencées en coord. géo.  
 
 Le code source de l'application est disponible
 sur [https://github.com/benoitdavidfr/geotab](https://github.com/benoitdavidfr/geotab).
 
-Version du 2/2/2020.
+### A faire
+* tester avec Excel,
+* afficher les lignes rejetées.
+
+Version du 3/2/2020.
 
 EOT;
   echo MarkdownExtra::defaultTransform($doc);
@@ -128,7 +140,7 @@ if (in_array('x', $header) && in_array('y', $header)) { // Menu fichier en coord
   </ul>
 EOT;
 }
-if (in_array('lon', $header) && in_array('lat', $header)) { // Menu fichier en coord. géo. 
+elseif (in_array('lon', $header) && in_array('lat', $header)) { // Menu fichier en coord. géo. 
   echo <<<EOT
   Fichier en coord. géo. détecté<ul>
   <li><a href='?file=$fname&amp;action=showAsTable'>Afficher le fichier comme table</a></li>
