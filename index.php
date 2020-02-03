@@ -4,7 +4,7 @@ name: index.php
 title: index.php - accueil de geotab
 doc: |
 journal: |
-  2/2/2020:
+  2-3/2/2020:
     ajout en béta de la possibilité de deviner le système de coordonnées, voir guesscrs.inc.php
   1/2/2020:
     création
