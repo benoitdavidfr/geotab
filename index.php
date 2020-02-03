@@ -87,7 +87,6 @@ Le code source de l'application est disponible
 sur [https://github.com/benoitdavidfr/geotab](https://github.com/benoitdavidfr/geotab).
 
 ### A faire
-* tester avec Excel,
 * afficher les lignes rejetées.
 
 Version du 3/2/2020.
@@ -138,6 +137,7 @@ if (in_array('x', $header) && in_array('y', $header)) { // Menu fichier en coord
   <li><a href='?file=$fname&amp;action=delete'>Supprimer le fichier</a></li>
   <li><a href='?file=$fname&amp;action=doc'>Documentation</a></li>
   </ul>
+
 EOT;
 }
 elseif (in_array('lon', $header) && in_array('lat', $header)) { // Menu fichier en coord. géo. 
@@ -149,6 +149,7 @@ elseif (in_array('lon', $header) && in_array('lat', $header)) { // Menu fichier 
   <li><a href='?file=$fname&amp;action=delete'>Supprimer le fichier</a></li>
   <li><a href='?file=$fname&amp;action=doc'>Documentation</a></li>
   </ul>
+
 EOT;
 }
 else { // sinon erreur 
@@ -218,7 +219,7 @@ if ($action =='guessCrs') {
     echo "</ul></li>\n";
   }
   echo "</ul>\n";
-  echo '<pre>',json_encode($guess, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE),"</pre>\n";
+  //echo '<pre>',json_encode($guess, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE),"</pre>\n";
   die();
 }
 
@@ -226,6 +227,9 @@ if ($action =='L93toGeo') {
   require_once __DIR__.'/../../geovect/coordsys/light.inc.php';
 
   echo "<h2>Conversion des champs (x,y) définis Lambert93 en champs (lon,lat) en RGF93 en degrés décimaux</h2>\n";
+  if (!isset($_GET['decsep']))
+    echo "<a href='?file=$_GET[file]&amp;action=$_GET[action]&amp;decsep=,'>",
+      "Utiliser ',' comme séparateur décimal</a></p>\n";
   echo "<table border=1><th>$header[0]</th><th>lon</th><th>lat</th>\n";
   while ($record = fgetcsv($file, 1024, "\t", '"')) {
     foreach ($header as $i => $k)
@@ -234,7 +238,11 @@ if ($action =='L93toGeo') {
       //echo "code=$rec[code], x=$rec[x], y=$rec[y] -> ";
       $geo = Lambert93::geo([$rec['x'], $rec['y']]);
       //printf("%.6f, %.6f<br>\n", $geo[0], $geo[1]);
-      printf("<tr><td>%s</td><td>%.6f</td><td>%.6f</td>", $record[0], $geo[0], $geo[1]);
+      if (isset($_GET['decsep']) && ($_GET['decsep']==','))
+        echo "<tr><td>$record[0]</td>",
+          str_replace('.',',',sprintf("<td>%.6f</td><td>%.6f</td></tr>\n", $geo[0], $geo[1]));
+      else
+        printf("<tr><td>%s</td><td>%.6f</td><td>%.6f</td></tr>\n", $record[0], $geo[0], $geo[1]);
     }
   }
   fclose($file);
@@ -250,6 +258,9 @@ if ($action =='CrsToGeo') {
   $crs = CRS::create($_GET['crs']);
 
   echo "<h2>Conversion des champs (x,y) définis $_GET[crs] en champs (lon,lat) en degrés décimaux</h2>\n";
+  if (!isset($_GET['decsep']))
+    echo "<a href='?file=$_GET[file]&amp;action=$_GET[action]&amp;crs=$_GET[crs]&amp;decsep=,'>",
+      "Utiliser ',' comme séparateur décimal</a></p>\n";
   echo "<table border=1><th>$header[0]</th><th>lon</th><th>lat</th>\n";
   while ($record = fgetcsv($file, 1024, "\t", '"')) {
     foreach ($header as $i => $k)
@@ -258,7 +269,11 @@ if ($action =='CrsToGeo') {
       //echo "code=$rec[code], x=$rec[x], y=$rec[y] -> ";
       $geo = $crs->geo([$rec['x'], $rec['y']]);
       //printf("%.6f, %.6f<br>\n", $geo[0], $geo[1]);
-      printf("<tr><td>%s</td><td>%.6f</td><td>%.6f</td>", $record[0], $geo[0], $geo[1]);
+      if (isset($_GET['decsep']) && ($_GET['decsep']==','))
+        echo "<tr><td>$record[0]</td>",
+          str_replace('.',',',sprintf("<td>%.6f</td><td>%.6f</td></tr>\n", $geo[0], $geo[1]));
+      else
+        printf("<tr><td>%s</td><td>%.6f</td><td>%.6f</td></tr>\n", $record[0], $geo[0], $geo[1]);
     }
   }
   fclose($file);

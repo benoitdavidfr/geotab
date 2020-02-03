@@ -21,6 +21,9 @@ doc: |
     - gérer des cartes pérennes (NON -> geojson.io)
     - gérer des représentations carto. des fichiers (NON -> geojson.io)
 journal: |
+  3/2/2020:
+    amélioration de la doc
+    ajout possibilité d'utiliser la , comme séparateur décimal
   2/2/2020:
     ajout en béta de la possibilité de deviner le système de coordonnées, voir guesscrs.inc.php
     ajout de la possibilité d'afficher la carte correspondant à des données géoréférencées en coord. géo.
