@@ -3,9 +3,12 @@
 name: index.php
 title: index.php - accueil de geotab
 doc: |
+  A faire:
+    afficher les coord. géo. incorrectes
 journal: |
   4/2/2020:
     ajout menu de choix du séparateur décimal et du nbre de décimales
+    traitement du séparateur des décimales en entrée
   2-3/2/2020:
     ajout en béta de la possibilité de deviner le système de coordonnées, voir guesscrs.inc.php
   1/2/2020:
@@ -50,7 +53,7 @@ Cependant, il leur manque certaines fonctionnalités, notamment:
 
 L'objectif de cette application est d'offrir ce type de fonctionnalités de manière ergonomique
 lorsque l'on utilise un tableur (Libre Office ou Excel)
-pour décrire des données géographiques localisées **sur terre en France**,
+pour gérer des données géographiques localisées **sur terre en France**,
 notamment de convertir les coordonnées projetées en coordonnées géographiques en degrés décimaux.
 
 Si vous savez que vos coordonnées sont définies en Lambert 93 alors :
@@ -64,9 +67,9 @@ Si vous savez que vos coordonnées sont définies en Lambert 93 alors :
 
 Si vous ne connaissez pas le système de coordonnées ou si ce n'est pas Lambert 93 alors pour réaliser la conversion :
 
-  * trouvez le système de cordonnées avec 'Deviner le système de coordonnées',
-  * affichez la carte pour vérifier les éventuels systèmes de cordonnées trouvés,
-  * convertissez les coordonnées projetées en coordonnées géographiques.
+* trouvez le système de cordonnées avec 'Deviner le système de coordonnées',
+* affichez la carte pour vérifier les éventuels systèmes de cordonnées trouvés,
+* convertissez les coordonnées projetées en coordonnées géographiques.
 
 Dans le texte d'origine :
   
@@ -333,7 +336,7 @@ if ($action =='CrsToGeo') { // Convertir
   die();
 }
 
-if ($action =='showBadCrsXY') { // Affichage des lignes dont les coord ne sont pas dans le CRS  
+if ($action =='showBadCrsXY') { // Affichage des lignes dont les coord ne sont pas dans les limites du CRS  
   require_once __DIR__.'/guesscrs.inc.php';
 
   if (!isset($_GET['crs']))
