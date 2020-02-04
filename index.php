@@ -4,6 +4,8 @@ name: index.php
 title: index.php - accueil de geotab
 doc: |
 journal: |
+  4/2/2020:
+    ajout menu de choix du séparateur décimal et du nbre de décimales
   2-3/2/2020:
     ajout en béta de la possibilité de deviner le système de coordonnées, voir guesscrs.inc.php
   1/2/2020:
@@ -17,7 +19,7 @@ function randomFileName(): string {
 
 echo "<!DOCTYPE HTML><html><head><meta charset='UTF-8'><title>geotab</title></head><body>\n";
 
-// première utilisation OU confirmation de suppression
+// première utilisation OU confirmation de suppression -> affichage du formulaire de saisie
 if (!isset($_POST['input']) && (!isset($_GET['action']) || in_array($_GET['action'], ['confirmedDelete','input']))) {
   if (isset($_GET['action']) && ($_GET['action']=='confirmedDelete')) {
     unlink(__DIR__."/$_GET[file]");
@@ -47,7 +49,8 @@ Cependant, il leur manque certaines fonctionnalités, notamment:
 * la détection du système de coordonnées utilisé.
 
 L'objectif de cette application est d'offrir ce type de fonctionnalités de manière ergonomique
-lorsque l'on utilise un tableur (Libre Office ou Excel) pour décrire des données géographiques localisées en France,
+lorsque l'on utilise un tableur (Libre Office ou Excel)
+pour décrire des données géographiques localisées **sur terre en France**,
 notamment de convertir les coordonnées projetées en coordonnées géographiques en degrés décimaux.
 
 Si vous savez que vos coordonnées sont définies en Lambert 93 alors :
@@ -74,7 +77,8 @@ Dans le texte d'origine :
 * la sortie en coord. géo. reprend la première colonne qui est souvent une clé, permettant ainsi de vérifier
   qu'il n'y a pas de décalage entre lignes,
 * les coordonnées géographiques sont fournies dans des champs **`lon`** et **`lat`**
-  et sont fournies avec 6 décimales ce qui correspond à une résolution meilleure que le mètre.
+  et sont fournies par défaut avec 6 décimales ce qui correspond à une résolution meilleure que le mètre,
+* un menu permet de choisir le séparateur décimal ainsi que le nombre de décimales souhaitées.
 
 ### Attention
 
@@ -87,7 +91,7 @@ Le code source de l'application est disponible
 sur [https://github.com/benoitdavidfr/geotab](https://github.com/benoitdavidfr/geotab).
 
 ### A faire
-* afficher les lignes rejetées.
+* afficher les lignes en coord géo incorrectes.
 
 Version du 3/2/2020.
 
@@ -116,24 +120,32 @@ else { // ou erreur
 
 // Actions
 
-if ($action =='delete') {
+if ($action =='delete') { // Demande de confirmation de suppression du fichier 
   die("<a href='?file=$fname&amp;action=confirmedDelete'>Confirmer la suppression du fichier</a>");
 }
 
-if (!($file = fopen(__DIR__."/$fname",'r')))
+if (!($file = fopen(__DIR__."/$fname",'r'))) { // Erreur d'ouverture du fichier 
   die("Erreur ouverture du fichier $fname");
+}
 
-if (!($header = fgetcsv($file, 1024, "\t", '"')))
+if (!($header = fgetcsv($file, 1024, "\t", '"'))) { // Erreur header incorrect 
   die("Erreur de lecture de la première ligne qui doit être une liste de champs séparés par le caractère tabulation");
+}
 
+// Menu
 if (in_array('x', $header) && in_array('y', $header)) { // Menu fichier en coord. projetées 
   echo <<<EOT
   <ul>
   <li><a href='?file=$fname&amp;action=showAsTable'>Afficher le fichier comme table</a></li>
   <li><a href='?file=$fname&amp;action=showAsText'>Afficher le fichier comme texte brut</a></li>
+  <li><a href='?file=$fname&amp;action=showBadRowsXY'>
+    Afficher les lignes pour lesquelles le format des coord. est incorrect</a></li>
   <li><a href='?file=$fname&amp;action=guessCrs'>Deviner le système de coordonnées (béta)</a></li>
   <li><a href='map.php?file=$fname&crs=IGNF:LAMB93'>Afficher le fichier en Lambert93 sous la forme d'une carte</a></li>
-  <li><a href='?file=$fname&amp;action=L93toGeo'>Convertir (x,y) en Lambert93 -> (lon,lat) en RGF93</a></li>
+  <li><a href='?file=$fname&amp;action=CrsToGeo&amp;crs=IGNF:LAMB93'>
+    Convertir (x,y) en Lambert93 -> (lon,lat) en RGF93</a></li>
+  <li><a href='?file=$fname&amp;action=showBadCrsXY&amp;crs=IGNF:LAMB93'>
+    Afficher les lignes dont les coord. ne sont pas en Lambert 93</a></li>
   <li><a href='?file=$fname&amp;action=delete'>Supprimer le fichier</a></li>
   <li><a href='?file=$fname&amp;action=doc'>Documentation</a></li>
   </ul>
@@ -157,7 +169,7 @@ else { // sinon erreur
   die("Erreur: l'en-tête ne contient ni champs (x,y) ni champs (lon,lat), <a href='?'>retour</a>\n");
 }
 
-if ($action =='showAsTable') {
+if ($action =='showAsTable') { // Affichage comme table 
   echo "<table border=1>\n";
   echo "<th>",implode('</th><th>', $header), "</th>\n";
   while ($record = fgetcsv($file, 1024, "\t", '"')) {
@@ -167,12 +179,29 @@ if ($action =='showAsTable') {
   die();
 }
 
-if ($action =='showAsText') {
+if ($action =='showAsText') { // Affichage comme texte brut 
   echo "<pre>",file_get_contents(__DIR__."/$fname"),"</pre";
   die();
 }
 
-if ($action =='guessCrs') {
+if ($action =='showBadRowsXY') { // Affichage des lignes incorrectes pour x,y 
+  echo "<h2>Lignes pour lesquelles le format des coord. x,y est incorrect</h2>\n";
+  echo "<table border=1>\n";
+  echo "<th>",implode('</th><th>', $header), "</th>\n";
+  while ($record = fgetcsv($file, 1024, "\t", '"')) {
+    foreach ($header as $i => $k)
+      $rec[$k] = $record[$i];
+    $x = isset($rec['x']) ? str_replace(',', '.', $rec['x']) : null;
+    $y = isset($rec['y']) ? str_replace(',', '.', $rec['y']) : null;
+    if (!is_numeric($x) || !is_numeric($y)) {
+      echo "<tr><td>",implode('</td><td>', $record), "</td></tr>\n";
+    }
+  }
+  echo "</table>\n";
+  die();
+}
+
+if ($action =='guessCrs') { // Deviner le CRS 
   require_once __DIR__.'/guesscrs.inc.php';
   $features = [];
   $bbox = []; // bbox des features dans le sys coord
@@ -180,22 +209,22 @@ if ($action =='guessCrs') {
   while ($record = fgetcsv($file, 1024, "\t", '"')) {
     foreach ($header as $i => $k)
       $rec[$k] = $record[$i];
-    if (isset($rec['x']) && is_numeric($rec['x']) && isset($rec['y']) && is_numeric($rec['y'])) {
-      //echo "code=$rec[code], x=$rec[x], y=$rec[y] -> ";
-      //printf("%.6f, %.6f<br>\n", $geo[0], $geo[1]);
-      //printf("<tr><td>%s</td><td>%.6f</td><td>%.6f</td>", $record[0], $geo[0], $geo[1]);
+    
+    $x = isset($rec['x']) ? str_replace(',', '.', $rec['x']) : null;
+    $y = isset($rec['y']) ? str_replace(',', '.', $rec['y']) : null;
+    if (is_numeric($x) && is_numeric($y)) {
       $features[] = [
         'type'=> 'Feature',
         'properties'=> $rec,
         'geometry'=> [
           'type'=> 'Point',
-          'coordinates'=> [$rec['x'], $rec['y']],
+          'coordinates'=> [floatval($x), floatval($y)],
         ],
       ];
       if (!$bbox)
-        $bbox = [$rec['x'], $rec['y'], $rec['x'], $rec['y']];
+        $bbox = [$x, $y, $x, $y];
       else
-        $bbox = [min($bbox[0],$rec['x']), min($bbox[1],$rec['y']), max($bbox[2],$rec['x']), max($bbox[3],$rec['y'])];
+        $bbox = [min($bbox[0],$x), min($bbox[1],$y), max($bbox[2],$x), max($bbox[3],$y)];
     }
   }
   if (!$features)
@@ -212,7 +241,8 @@ if ($action =='guessCrs') {
         $ne = $crs->geo([$bbox[2], $bbox[3]]);
         echo " <a href='map.php?file=$fname&amp;crs=$codeCrs&amp;bbox=$sw[0],$sw[1],$ne[0],$ne[1]'>carte</a>,\n";
         echo " <a href='?file=$fname&amp;action=CrsToGeo&amp;crs=$codeCrs'>convertir en coord. géo.</a>, \n";
-        echo " <a href='geojson.php?file=$fname&amp;crs=$codeCrs'>afficher en GeoJSON</a>, \n";
+        echo " <a href='?file=$fname&amp;action=showBadCrsXY&amp;crs=$codeCrs'>coord. incorrectes</a>, \n";
+        echo " <a href='geojson.php?file=$fname&amp;crs=$codeCrs'>GeoJSON</a>, \n";
       }
       echo "</li>\n";
     }
@@ -223,7 +253,7 @@ if ($action =='guessCrs') {
   die();
 }
 
-if ($action =='L93toGeo') {
+/*if ($action =='L93toGeo') {
   require_once __DIR__.'/../../geovect/coordsys/light.inc.php';
 
   echo "<h2>Conversion des champs (x,y) définis Lambert93 en champs (lon,lat) en RGF93 en degrés décimaux</h2>\n";
@@ -248,9 +278,9 @@ if ($action =='L93toGeo') {
   fclose($file);
   echo "</table>\n";
   die();
-}
+}*/
 
-if ($action =='CrsToGeo') {
+if ($action =='CrsToGeo') { // Convertir 
   require_once __DIR__.'/../../geovect/coordsys/full.inc.php';
 
   if (!isset($_GET['crs']))
@@ -258,22 +288,70 @@ if ($action =='CrsToGeo') {
   $crs = CRS::create($_GET['crs']);
 
   echo "<h2>Conversion des champs (x,y) définis $_GET[crs] en champs (lon,lat) en degrés décimaux</h2>\n";
-  if (!isset($_GET['decsep']))
+  $decsep = isset($_GET['decsep']) ? $_GET['decsep'] : '.';
+  $nbdigits = isset($_GET['nbdigits']) ? $_GET['nbdigits'] : 6;
+  echo "<form>",
+       "<input type='hidden' name='file' value='$_GET[file]'>",
+       "<input type='hidden' name='action' value='$_GET[action]'>",
+       "<input type='hidden' name='crs' value='$_GET[crs]'>",
+       "séparateur décimal: <select name='decsep'>",
+       "<option value='.'",($decsep=='.') ? ' selected':'',">.</option>",
+       "<option value=','",($decsep==',') ? ' selected':'',">,</option>",
+       "</select>\n",
+       ", nbre de décimales: <select name='nbdigits'>",
+       "<option value='3'",($nbdigits==3) ? ' selected':'',">3 (rés. 1 km)</option>",
+       "<option value='4'",($nbdigits==4) ? ' selected':'',">4 (rés. 100 m)</option>",
+       "<option value='5'",($nbdigits==5) ? ' selected':'',">5 (rés. 10 m)</option>",
+       "<option value='6'",($nbdigits==6) ? ' selected':'',">6 (rés. 1 m)</option>",
+       "<option value='7'",($nbdigits==7) ? ' selected':'',">7 (rés. 10 cm)</option>",
+       "</select>\n",
+       "<input type='submit' value='choisir'>",
+       "</form></p>\n";
+  /*if (!isset($_GET['decsep']))
     echo "<a href='?file=$_GET[file]&amp;action=$_GET[action]&amp;crs=$_GET[crs]&amp;decsep=,'>",
-      "Utiliser ',' comme séparateur décimal</a></p>\n";
+      "Utiliser ',' comme séparateur décimal</a></p>\n";*/
+  $coordfmt = sprintf('%%.%df', isset($_GET['nbdigits']) ? $_GET['nbdigits'] : 6);
   echo "<table border=1><th>$header[0]</th><th>lon</th><th>lat</th>\n";
   while ($record = fgetcsv($file, 1024, "\t", '"')) {
     foreach ($header as $i => $k)
       $rec[$k] = $record[$i];
-    if (isset($rec['x']) && is_numeric($rec['x']) && isset($rec['y']) && is_numeric($rec['y'])) {
+    $x = isset($rec['x']) ? str_replace(',', '.', $rec['x']) : null;
+    $y = isset($rec['y']) ? str_replace(',', '.', $rec['y']) : null;
+    if (is_numeric($x) && is_numeric($y)) {
       //echo "code=$rec[code], x=$rec[x], y=$rec[y] -> ";
-      $geo = $crs->geo([$rec['x'], $rec['y']]);
+      $geo = $crs->geo([$x, $y]);
       //printf("%.6f, %.6f<br>\n", $geo[0], $geo[1]);
+      $coords = sprintf("<td>$coordfmt</td><td>$coordfmt</td>", $geo[0], $geo[1]);
       if (isset($_GET['decsep']) && ($_GET['decsep']==','))
-        echo "<tr><td>$record[0]</td>",
-          str_replace('.',',',sprintf("<td>%.6f</td><td>%.6f</td></tr>\n", $geo[0], $geo[1]));
+        echo "<tr><td>$record[0]</td>",str_replace('.',',',$coords),"</tr>\n";
       else
-        printf("<tr><td>%s</td><td>%.6f</td><td>%.6f</td></tr>\n", $record[0], $geo[0], $geo[1]);
+        echo "<tr><td>$record[0]</td>$coords</tr>\n";
+    }
+  }
+  fclose($file);
+  echo "</table>\n";
+  die();
+}
+
+if ($action =='showBadCrsXY') { // Affichage des lignes dont les coord ne sont pas dans le CRS  
+  require_once __DIR__.'/guesscrs.inc.php';
+
+  if (!isset($_GET['crs']))
+    die("Erreur paramètre crs absent");
+  $crs = CRS::create($_GET['crs']);
+
+  echo "<h2>Lignes pour lesquelles les champs (x,y) ne sont pas dans les limites du CRS $_GET[crs]</h2>\n";
+  
+  echo "<table border=1><th>",implode('</th><th>', $header), "</th>\n";
+  while ($record = fgetcsv($file, 1024, "\t", '"')) {
+    foreach ($header as $i => $k)
+      $rec[$k] = $record[$i];
+    $x = isset($rec['x']) ? str_replace(',', '.', $rec['x']) : null;
+    $y = isset($rec['y']) ? str_replace(',', '.', $rec['y']) : null;
+    if (is_numeric($x) && is_numeric($y)) {
+      $geo = $crs->geo([$x, $y]);
+      if (!GuessCrs::geoInCrsLimits($geo, $_GET['crs']))
+        echo "<tr><td>",implode('</td><td>', $record), "</td></tr>\n";
     }
   }
   fclose($file);

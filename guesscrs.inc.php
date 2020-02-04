@@ -8,6 +8,8 @@ doc: |
   Cette première version est restreinte à:
     - la liste des CRS officiels des territoires habités français cad hors Terres Australes et Cliperton
 journal: |
+  4/2/2020:
+    Ajout du test geoInCrsLimits()
   2/2/2020:
     création
 */
@@ -127,6 +129,7 @@ class GuessCrs {
           if ($feature['geometry']['type'] <> 'Point')
             die("Erreur ligne ".__LINE__);
           $coord = $feature['geometry']['coordinates'];
+          //echo "<pre>coord="; print_r($coord); echo "</pre>\n";
           $geo = $crs->geo($coord);
           //print_r($geo);
           if (self::geoInLimits($geo, $region, $codeCrs)) {
@@ -148,7 +151,7 @@ class GuessCrs {
     return $result;
   }
   
-  // Teste si un point défini dans $pt est dans les limites de la region et du crs
+  // Teste si un point défini en coord. géo. dans $pt est dans les limites de la region et du crs
   static function geoInLimits(array $pt, array $region, string $codeCrs): bool {
     // teste si la longitude du point est dans l'intervalle des longitude de la région
     if (($pt[0] < $region['limits']['westlimit']) || ($pt[0] > $region['limits']['eastlimit']))
@@ -169,6 +172,18 @@ class GuessCrs {
     if (isset($region['crs'][$codeCrs]['northlimit']) && ($pt[1] > $region['crs'][$codeCrs]['northlimit']))
       return false;
     return true;
+  }
+  
+  // Teste si un point en coord géo. est dans les limites définies pour un CRS
+  // cad s'il est correct pour au moins une région pour laquelle ce CRS est défini 
+  static function geoInCrsLimits(array $pt, string $codeCrs): bool {
+    foreach (self::$geoRegions as $codeRegion => $region) {
+      if (isset($region['crs'][$codeCrs])) {
+        if (self::geoInLimits($pt, $region, $codeCrs))
+          return true;
+      }
+    }
+    return false;
   }
 };
 
