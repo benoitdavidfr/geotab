@@ -4,6 +4,8 @@ name: index.php
 title: index.php - accueil de geotab
 doc: |
 journal: |
+  5/2/2020:
+    ajout de la gestion des données en coord. géo., notamment affichage de la région
   4/2/2020:
     ajout menu de choix du séparateur décimal et du nbre de décimales
     traitement du séparateur des décimales en entrée
@@ -337,7 +339,7 @@ if ($action =='guessCrs') { // Deviner le CRS
   die();
 }*/
 
-if ($action =='CrsToGeo') { // Convertir 
+if ($action =='CrsToGeo') { // Conversion 
   require_once __DIR__.'/../../geovect/coordsys/full.inc.php';
 
   if (!isset($_GET['crs']))
@@ -390,7 +392,7 @@ if ($action =='CrsToGeo') { // Convertir
   die();
 }
 
-if ($action =='showBadCrsXY') { // Affichage des lignes dont les coord ne sont pas dans les limites du CRS  
+if ($action =='showBadCrsXY') { // Affichage des lignes dont les coord. ne sont pas dans les limites du CRS  
   require_once __DIR__.'/guesscrs.inc.php';
 
   if (!isset($_GET['crs']))
