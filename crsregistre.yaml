@@ -181,6 +181,11 @@ CRS: # Registre des CRS
     title: European Terrestrial Reference System 1989
     DATUM: European_Terrestrial_Reference_System_1989
     AUTHORITY: {EPSG: 4258}
+    limits: # source https://epsg.io/4258
+      westlimit: -16.1
+      southlimit: 40.18
+      eastlimit: 32.88
+      northlimit: 84.17
   ED50LonLatDd:
     DATUM: European_Datum_1950
     AUTHORITY: {EPSG: 4230}

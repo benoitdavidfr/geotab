@@ -3,8 +3,6 @@
 name: index.php
 title: index.php - accueil de geotab
 doc: |
-  A faire:
-    afficher les coord. géo. incorrectes
 journal: |
   4/2/2020:
     ajout menu de choix du séparateur décimal et du nbre de décimales
@@ -51,6 +49,7 @@ Cependant, il leur manque certaines fonctionnalités, notamment:
 * l'affichage des données sous la forme d'une carte,
 * la détection du système de coordonnées utilisé.
 
+### Données utilisant des coordonnées projetées
 L'objectif de cette application est d'offrir ce type de fonctionnalités de manière ergonomique
 lorsque l'on utilise un tableur (Libre Office ou Excel)
 pour gérer des données géographiques localisées **sur terre en France**,
@@ -83,21 +82,33 @@ Dans le texte d'origine :
   et sont fournies par défaut avec 6 décimales ce qui correspond à une résolution meilleure que le mètre,
 * un menu permet de choisir le séparateur décimal ainsi que le nombre de décimales souhaitées.
 
-### Attention
+#### CRS gérés
+Sont gérés :
 
-* seuls sont gérés les [CRS officiels](https://www.legifrance.gouv.fr/eli/arrete/2019/3/5/TRED1803160A/jo/texte)
+* les [CRS français officiels](https://www.legifrance.gouv.fr/eli/arrete/2019/3/5/TRED1803160A/jo/texte)
   des territoires habités français cad hors Terres Australes et Clipperton,
-* si les champs `x` et `y` ne sont pas définis et que les champs `lon` et `lat` le sont
-  alors l'appli propose d'afficher la carte correspondant aux données considérées comme géoréférencées en coord. géo.  
+* le système Lambert II étendu qui est périmé mais a été très utilisé pour la France métropolitaine,
+* les systèmes LCC et UTM [recommandés par la Commission européenne et EuroGeographics
+  ](https://ec.europa.eu/eurostat/documents/4311134/4366152/Map-projections-EUROPE.pdf/460d90e4-b7f2-49b7-8962-5c860c76757d)
+  pour leur utilisation en Europe.
 
+### Données utilisant des coordonnées géographiques
+Si les champs `x` et `y` ne sont pas définis et que les champs `lon` et `lat` le sont
+alors l'appli considère que les données sont géoréférencées en coordonnées géographiques en degrés décimaux
+et propose alors:
+
+* d'afficher la carte correspondant aux données (à compléter)
+
+### A faire
+* compléter la doc, mettre de la biblio
+* ajouter LAEA
+* exposer des données de test
+
+### Code source
 Le code source de l'application est disponible
 sur [https://github.com/benoitdavidfr/geotab](https://github.com/benoitdavidfr/geotab).
 
-### A faire
-* afficher les lignes en coord géo incorrectes.
-
-Version du 3/2/2020.
-
+Version du 5/2/2020.
 EOT;
   echo MarkdownExtra::defaultTransform($doc);
   if (isset($_GET['file']))
@@ -144,7 +155,8 @@ if (in_array('x', $header) && in_array('y', $header)) { // Menu fichier en coord
   <li><a href='?file=$fname&amp;action=showBadRowsXY'>
     Afficher les lignes pour lesquelles le format des coord. est incorrect</a></li>
   <li><a href='?file=$fname&amp;action=guessCrs'>Deviner le système de coordonnées (béta)</a></li>
-  <li><a href='map.php?file=$fname&crs=IGNF:LAMB93'>Afficher le fichier en Lambert93 sous la forme d'une carte</a></li>
+  <li><a href='map.php?file=$fname&crs=IGNF:LAMB93' target='_blank'>
+    Afficher le fichier en Lambert93 sous la forme d'une carte</a></li>
   <li><a href='?file=$fname&amp;action=CrsToGeo&amp;crs=IGNF:LAMB93'>
     Convertir (x,y) en Lambert93 -> (lon,lat) en RGF93</a></li>
   <li><a href='?file=$fname&amp;action=showBadCrsXY&amp;crs=IGNF:LAMB93'>
@@ -160,9 +172,11 @@ elseif (in_array('lon', $header) && in_array('lat', $header)) { // Menu fichier 
   Fichier en coord. géo. détecté<ul>
   <li><a href='?file=$fname&amp;action=showAsTable'>Afficher le fichier comme table</a></li>
   <li><a href='?file=$fname&amp;action=showAsText'>Afficher le fichier comme texte brut</a></li>
-  <li><a href='map.php?file=$fname&crs=WGS84LonLatDd'>Afficher le fichier sous la forme d'une carte</a></li>
+  <li><a href='?file=$fname&amp;action=showGeoRegion'>Afficher la région dans laquelle se trouve chaque ligne</a></li>
+  <li><a href='map.php?file=$fname&crs=WGS84LonLatDd' target='_blank'>
+    Afficher le fichier sous la forme d'une carte</a></li>
   <li><a href='?file=$fname&amp;action=delete'>Supprimer le fichier</a></li>
-  <li><a href='?file=$fname&amp;action=doc'>Documentation</a></li>
+  <li><a href='?file=$fname&amp;action=doc' target='_blank'>Documentation</a></li>
   </ul>
 
 EOT;
@@ -198,6 +212,46 @@ if ($action =='showBadRowsXY') { // Affichage des lignes incorrectes pour x,y
     $y = isset($rec['y']) ? str_replace(',', '.', $rec['y']) : null;
     if (!is_numeric($x) || !is_numeric($y)) {
       echo "<tr><td>",implode('</td><td>', $record), "</td></tr>\n";
+    }
+  }
+  echo "</table>\n";
+  die();
+}
+
+if ($action =='showGeoRegion') { // Affichage de la région dans laquelle se trouve chaque ligne  
+  require_once __DIR__.'/guesscrs.inc.php';
+  echo "<h2>Région dans laquelle se trouvent les coord. (lon, lat)</h2>\n";
+  $codeRegion = isset($_GET['codeRegion']) ? $_GET['codeRegion'] : '*';
+  $regions = GuessCrs::regions();
+  echo "<form>",
+       "<input type='hidden' name='file' value='$_GET[file]'>\n",
+       "<input type='hidden' name='action' value='$_GET[action]'>\n",
+       "Filtrer les lignes sur la région : <select name='codeRegion'>\n",
+       "<option value='*'",($codeRegion=='*') ? ' selected':'',">Pas de filtre</option>\n",
+       "<option value='error'",($codeRegion=='error') ? ' selected':'',">Erreur de format</option>\n",
+       "<option value=''",($codeRegion=='') ? ' selected':'',">Aucune région</option>\n";
+  foreach($regions as $cr => $label)
+    echo "<option value='$cr'",($codeRegion==$cr) ? ' selected':'',">$label</option>\n";
+  echo "</select>\n",
+       "<input type='submit' value='choisir'>",
+       "</form></p>\n";
+  
+  echo "<table border=1>\n";
+  echo "<th>",implode('</th><th>', $header), "</th><th>région</th>\n";
+  while ($record = fgetcsv($file, 1024, "\t", '"')) {
+    foreach ($header as $i => $k)
+      $rec[$k] = $record[$i];
+    $lon = isset($rec['lon']) ? str_replace(',', '.', $rec['lon']) : null;
+    $lat = isset($rec['lat']) ? str_replace(',', '.', $rec['lat']) : null;
+    if (!is_numeric($lon) || !is_numeric($lat)) {
+      if (in_array($codeRegion, ['*','error']))
+        echo "<tr><td>",implode('</td><td>', $record), "</td><td>Erreur de format</td></tr>\n";
+    }
+    else {
+      $cr = GuessCrs::geoInRegionLimits([$lon, $lat]);
+      //echo "<tr><td>cr=$cr, codeRegion=$codeRegion</td></tr>\n";
+      if (in_array($codeRegion, ['*', $cr]))
+        echo "<tr><td>",implode('</td><td>', $record), "</td><td>",$cr ? $cr : 'Aucune région',"</td></tr>\n";
     }
   }
   echo "</table>\n";

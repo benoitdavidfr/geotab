@@ -12,9 +12,8 @@ doc: |
   
   synchro: http://localhost/synchro.php?remote=http://prod.geoapi.fr/&dir=gexplor/geotab
   
-  Il y a plein d'idées d'extensions, notamment :
+  Idées d'extensions :
     - ajouter d'autres systèmes de coordonnées, not. européens, périmés, ...
-    - lister les enregistrements dont les coordonnées sont invalides pour un CRS
     - gérer les types de géométrie autres que le ponctuel
     - saisir la géométrie sur la carte (NON -> geojson.io)
     - gérer des fichiers pérennes en ligne (NON -> geojson.io)

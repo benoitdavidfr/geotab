@@ -51,10 +51,10 @@ while ($record = fgetcsv($file, 1024, "\t", '"')) {
       continue;
   }
   else {
-    $lon = isset($rec['lon']) ? floatval(str_replace(',','.',$rec['lon'])) : null;
-    $lat = isset($rec['lat']) ? floatval(str_replace(',','.',$rec['lat'])) : null;
+    $lon = isset($rec['lon']) ? str_replace(',','.',$rec['lon']) : null;
+    $lat = isset($rec['lat']) ? str_replace(',','.',$rec['lat']) : null;
     if (is_numeric($lon) && is_numeric($lat))
-      $lonlat = [$lon, $lat];
+      $lonlat = [floatval($lon), floatval($lat)];
     else
       continue;
   }

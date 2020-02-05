@@ -7,6 +7,8 @@ doc: |
   les plus souvent rencontrées et de tester si les coordonnées passées sont dans une des boites.
   Cette première version est restreinte à:
     - la liste des CRS officiels des territoires habités français cad hors Terres Australes et Cliperton
+    - les CRS recommandés pour l'Europe
+    - le CRS périmé Lambert II
 journal: |
   4/2/2020:
     Ajout du test geoInCrsLimits()
@@ -44,6 +46,7 @@ class GuessCrs {
         'IGNF:LAMBCC48'=> [ 'name'=> "Lambert CC48", 'southlimit'=> 47, 'northlimit'=> 49 ],
         'IGNF:LAMBCC49'=> [ 'name'=> "Lambert CC49", 'southlimit'=> 48, 'northlimit'=> 50 ],
         'IGNF:LAMBCC50'=> [ 'name'=> "Lambert CC50", 'southlimit'=> 49, 'northlimit'=> 51 ],
+        'IGNF:LAMB2E'=> [ 'name'=> "Lambert II E", 'southlimit'=> 42.33, 'northlimit'=> 51.14 ],
       ],
     ],
     'GP'=> [
@@ -109,7 +112,27 @@ class GuessCrs {
         'LambertNouvelleCaledonie'=> ['name'=> "Lambert Nouvelle-Calédonie"],
       ],
     ],
+    'EU'=> [
+      'name'=> "Europe",
+      'limits'=> ['westlimit'=> -16.1, 'southlimit'=> 40.18, 'eastlimit'=> 32.88, 'northlimit'=> 84.17],
+      'crs'=> [
+        'IGNF:ETRS89LCC'=> [ 'name'=> "ETRS89 / LCC Europe", 'southlimit'=> 27, 'northlimit'=> 71 ],
+        'UTM29N-ETRS89LonLatDd'=> [ 'name'=> "ETRS89 / UTM zone 29N", 'westlimit'=> -12, 'eastlimit'=> 6 ],
+        'UTM30N-ETRS89LonLatDd'=> [ 'name'=> "ETRS89 / UTM zone 30N", 'westlimit'=> -6, 'eastlimit'=> 0 ],
+        'UTM31N-ETRS89LonLatDd'=> [ 'name'=> "ETRS89 / UTM zone 31N", 'westlimit'=> 0, 'eastlimit'=> 6 ],
+        'UTM32N-ETRS89LonLatDd'=> [ 'name'=> "ETRS89 / UTM zone 32N", 'westlimit'=> 6, 'eastlimit'=> 12 ],
+        'UTM33N-ETRS89LonLatDd'=> [ 'name'=> "ETRS89 / UTM zone 33N", 'westlimit'=> 12, 'eastlimit'=> 18 ],
+      ]
+    ],
   ];
+  
+  // retourne la liste des régions avec son code et son nom
+  static function regions(): array {
+    $result = [];
+    foreach (self::$geoRegions as $code => $region)
+      $result[$code] = $region['name'];
+    return $result;
+  }
   
   // prend en param. une Feature Collection GeoJSON non vide encodée en Php et retourne un array
   // [region -> ['name'-> name, 'crs' -> [codeCrs -> ['title'-> title, 'proportion'-> proportion]]]]
@@ -177,13 +200,26 @@ class GuessCrs {
   // Teste si un point en coord géo. est dans les limites définies pour un CRS
   // cad s'il est correct pour au moins une région pour laquelle ce CRS est défini 
   static function geoInCrsLimits(array $pt, string $codeCrs): bool {
-    foreach (self::$geoRegions as $codeRegion => $region) {
+    foreach (self::$geoRegions as $region) {
       if (isset($region['crs'][$codeCrs])) {
         if (self::geoInLimits($pt, $region, $codeCrs))
           return true;
       }
     }
     return false;
+  }
+  
+  // Teste si le point en coord. géo. est dans au moins une des régions
+  // Renvoie alors le code de la région ou '' si aucune région ne correspond
+  static function geoInRegionLimits(array $pt): string {
+    foreach (self::$geoRegions as $codeRegion => $region) {
+      // teste si la longitude du point est dans l'intervalle des longitudes de la région
+      if (($pt[0] >= $region['limits']['westlimit']) && ($pt[0] <= $region['limits']['eastlimit'])
+      // teste si la latitude du point est dans l'intervalle des latitudes de la région
+        && ($pt[1] >= $region['limits']['southlimit']) && ($pt[1] <= $region['limits']['northlimit']))
+        return $codeRegion;
+    }
+    return '';
   }
 };
 
