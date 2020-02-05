@@ -89,7 +89,7 @@ Sont gérés :
 
 * les [CRS français officiels](https://www.legifrance.gouv.fr/eli/arrete/2019/3/5/TRED1803160A/jo/texte)
   des territoires habités français cad hors Terres Australes et Clipperton,
-* le système Lambert II étendu qui est périmé mais a été très utilisé pour la France métropolitaine,
+* le système Lambert II étendu qui est périmé mais a été très utilisé en France métropolitaine,
 * les systèmes LCC et UTM [recommandés par la Commission européenne et EuroGeographics
   ](https://ec.europa.eu/eurostat/documents/4311134/4366152/Map-projections-EUROPE.pdf/460d90e4-b7f2-49b7-8962-5c860c76757d)
   pour leur utilisation en Europe.
@@ -99,18 +99,22 @@ Si les champs `x` et `y` ne sont pas définis et que les champs `lon` et `lat` l
 alors l'appli considère que les données sont géoréférencées en coordonnées géographiques en degrés décimaux
 et propose alors:
 
-* d'afficher la carte correspondant aux données (à compléter)
+* d'afficher la carte correspondant aux données,
+* d'identifier la région à laquelle correspondent les coord. géo.
 
-### A faire
-* compléter la doc, mettre de la biblio
-* ajouter LAEA
-* exposer des données de test
+### Bibliographie</h3>
+* [coordsys - conversion de coordonnées entre systèmes de référence (CRS) ](https://github.com/benoitdavidfr/geovect/tree/master/coordsys)
 
 ### Code source
 Le code source de l'application est disponible
 sur [https://github.com/benoitdavidfr/geotab](https://github.com/benoitdavidfr/geotab).
 
 Version du 5/2/2020.
+
+### A faire
+* compléter la doc, mettre de la biblio
+* exposer des données de test
+
 EOT;
   echo MarkdownExtra::defaultTransform($doc);
   if (isset($_GET['file']))

@@ -20,6 +20,8 @@ doc: |
     - gérer des cartes pérennes (NON -> geojson.io)
     - gérer des représentations carto. des fichiers (NON -> geojson.io)
 journal: |
+  5/2/2020:
+    ajout de la gestion des données en coord. géo., notamment affichage de la région
   3/2/2020:
     amélioration de la doc
     ajout possibilité d'utiliser la , comme séparateur décimal
