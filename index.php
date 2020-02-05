@@ -100,9 +100,12 @@ alors l'appli considère que les données sont géoréférencées en coordonnée
 et propose alors:
 
 * d'afficher la carte correspondant aux données,
-* d'identifier la région à laquelle correspondent les coord. géo.
+* vérfier les coord. géo. en identifiant la région à laquelle elles correspondent
 
-### Bibliographie</h3>
+### Données de test
+[Données de test](https://raw.githubusercontent.com/benoitdavidfr/geotab/master/testdata.ods).
+
+### Bibliographie
 * [coordsys - conversion de coordonnées entre systèmes de référence (CRS) ](https://github.com/benoitdavidfr/geovect/tree/master/coordsys)
 
 ### Code source
@@ -110,10 +113,6 @@ Le code source de l'application est disponible
 sur [https://github.com/benoitdavidfr/geotab](https://github.com/benoitdavidfr/geotab).
 
 Version du 5/2/2020.
-
-### A faire
-* compléter la doc, mettre de la biblio
-* exposer des données de test
 
 EOT;
   echo MarkdownExtra::defaultTransform($doc);
